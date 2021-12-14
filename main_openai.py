@@ -243,7 +243,6 @@ def train(arglist):
                 action_good_clip.append(a)
                 action_good_clip_real.append(b)
 
-            #action_adversary_clip = [np.array([0.0,0.0,0.0,0.0,0.0]) for _ in range(4)]
             action_adversary_clip = adversary_control.adversary_action(env)
             action_n = np.concatenate((action_good_clip , action_adversary_clip))
             # interact with env

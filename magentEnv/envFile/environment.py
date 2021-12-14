@@ -2,6 +2,7 @@ import gym
 from gym import spaces
 import numpy as np
 from magentEnv.envFile.multi_discrete import MultiDiscrete
+from magentEnv.envFile.core import World, Agent, Landmark, Controller
 
 # environment for all agents in the multiagent world
 # currently code assumes that no agents will be created/destroyed at runtime!
@@ -115,6 +116,41 @@ class MultiAgentEnv(gym.Env):
         for agent in self.good_agents:
              reward_agent.append(self._get_reward(agent))
         reward_n.append(np.sum(reward_agent))
+
+        randa = np.random.randint(20,size=1)
+        #print(randa)
+        if randa == 1 and self.num_adversary < 8:
+            agent_tmp = Agent()
+            agent_tmp.name = 'agent %d' % (self.num_adversary + self.num_good + 1)
+            agent_tmp.collide = True
+            agent_tmp.leader = False
+            agent_tmp.silent = True
+            agent_tmp.adversary = True
+            agent_tmp.size = 0.075
+            agent_tmp.accel = 3.0
+            agent_tmp.max_speed = 1.0
+            agent_tmp.state.p_pos = np.random.uniform(-1.0, 1.0, self.world.dim_p)
+            agent_tmp.state.p_vel = np.zeros(self.world.dim_p)
+            agent_tmp.color = np.array([0.95, 0.45, 0.45])
+            self.world.agents.append(agent_tmp)
+            self.agents = self.world.agents
+            self.adversary_agents = []
+            self.num_adversary = 0
+            for agent in self.agents:
+                if agent.adversary:
+                    self.num_adversary += 1
+                    self.adversary_agents.append(agent)
+
+        if randa == 2 and self.num_adversary > 2:
+            self.world.agents = self.world.agents[0:-1]
+            self.agents = self.world.agents
+            self.adversary_agents = []
+            self.num_adversary = 0
+            for agent in self.agents:
+                if agent.adversary:
+                    self.num_adversary += 1
+                    self.adversary_agents.append(agent)
+
         # record observation for each agent
         for controller in self.controllers:
             obs_n.append(self._get_obs(controller))
@@ -252,13 +288,14 @@ class MultiAgentEnv(gym.Env):
                 self.viewers[i] = rendering.Viewer(700,700)
 
         # create rendering geometry
-        if self.render_geoms is None:
+        #if self.render_geoms is None:
+        if True:
             # import rendering only if we need it (and don't import for headless machines)
             #from gym.envs.classic_control import rendering
             from multiagent import rendering
             self.render_geoms = []
             self.render_geoms_xform = []
-            for entity in self.world.entities:
+            for entity in (self.world.entities + self.world.base):
                 if entity.movable:
                     # geom = rendering.make_rectangle(0.5 * entity.size, entity.size)
                     geom = rendering.make_triangle(0.5 * entity.size, entity.size)
@@ -272,7 +309,13 @@ class MultiAgentEnv(gym.Env):
                 geom.add_attr(xform)
                 self.render_geoms.append(geom)
                 self.render_geoms_xform.append(xform)
-
+            '''for entity in self.world.base:
+                geom = rendering.make_circle(entity.size)
+                xform = rendering.Transform()
+                geom.set_color(*entity.color)
+                geom.add_attr(xform)
+                self.render_geoms.append(geom)
+                self.render_geoms_xform.append(xform)'''
             # add geoms to viewer
             for viewer in self.viewers:
                 viewer.geoms = []
@@ -289,7 +332,7 @@ class MultiAgentEnv(gym.Env):
                 pos = self.agents[i].state.p_pos
             self.viewers[i].set_bounds(pos[0]-cam_range,pos[0]+cam_range,pos[1]-cam_range,pos[1]+cam_range)
             # update geometry positions
-            for e, entity in enumerate(self.world.entities):
+            for e, entity in enumerate(self.world.entities + self.world.base):
                 self.render_geoms_xform[e].set_translation(*entity.state.p_pos)
                 if entity.movable:
                     #print(*entity.state.p_vel)

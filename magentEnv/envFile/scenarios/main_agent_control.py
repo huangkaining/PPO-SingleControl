@@ -16,6 +16,7 @@ class Scenario(BaseScenario):
         num_landmarks = 1
         num_food = 1
         num_forests = 0
+        num_base = 2
         # add agents
         world.agents = [Agent() for i in range(num_agents)]
         for i, agent in enumerate(world.agents):
@@ -52,6 +53,13 @@ class Scenario(BaseScenario):
             landmark.collide = True
             landmark.movable = False
             landmark.size = 0.03
+            landmark.boundary = False
+        world.base = [Landmark() for i in range(num_base)]
+        for i,landmark in enumerate(world.base):
+            landmark.name = 'base %d' %i
+            landmark.collide = False
+            landmark.movable = False
+            landmark.size = 0.2
             landmark.boundary = False
         if num_forests:
             world.forests = [Landmark() for i in range(num_forests)]
@@ -111,6 +119,8 @@ class Scenario(BaseScenario):
             landmark.color = np.array([0.15, 0.15, 0.65])
         for i, landmark in enumerate(world.forests):
             landmark.color = np.array([0.6, 0.9, 0.6])
+        world.base[0].color = np.array([0.25, 0.75, 0.25])    #好的一方
+        world.base[1].color = np.array([0.75, 0.25, 0.25])  #adversary
         # set random initial states
         for agent in world.agents:
             #agent.state.p_pos = np.random.uniform(-1, +1, world.dim_p)
@@ -132,11 +142,15 @@ class Scenario(BaseScenario):
             landmark.state.p_vel = np.zeros(world.dim_p)
         for i, landmark in enumerate(world.food):
             #landmark.state.p_pos = np.random.uniform(-0.9, +0.9, world.dim_p)
-            landmark.state.p_pos = np.random.uniform( 0, +0.9, world.dim_p)
+            landmark.state.p_pos = [np.random.uniform( -0.3, 0.8), np.random.uniform(-0.8,-0.5)]
             landmark.state.p_vel = np.zeros(world.dim_p)
         for i, landmark in enumerate(world.forests):
             landmark.state.p_pos = np.random.uniform(-0.9, +0.9, world.dim_p)
             landmark.state.p_vel = np.zeros(world.dim_p)
+        world.base[0].state.p_pos = [0.9, 0.9]
+        world.base[0].state.p_vel = np.zeros(world.dim_p)
+        world.base[1].state.p_pos = [-0.9, -0.9]
+        world.base[1].state.p_vel = np.zeros(world.dim_p)
 
     def benchmark_data(self, agent, world):
         if agent.adversary:
@@ -258,11 +272,17 @@ class Scenario(BaseScenario):
         for other in world.agents:
             other_pos.append(other.state.p_pos - agent.state.p_pos)
             other_vel.append(other.state.p_vel)
+        while len(other_pos) < 15:
+            other_pos.append(np.array([0,0]))
+            other_vel.append(np.array([0,0]))
         '''print("\np_vel:" , agent.state.p_vel)
         print("\np_pos:",agent.state.p_pos)
         print("\nentitypos:",entity_pos)
         print("\nother_pos:",other_pos)
-        print("\nother_vel:",other_vel)'''
+        print("\nother_vel:",other_vel)
+        print([agent.state.p_pos],entity_pos,food_pos,other_vel)
+        print(np.concatenate([agent.state.p_pos] + entity_pos+ food_pos + other_pos + other_vel))
+        print('---------------------------------------')'''
         return np.concatenate([agent.state.p_pos] + entity_pos+ food_pos + other_pos + other_vel)
 
     def observation2(self, agent, world):

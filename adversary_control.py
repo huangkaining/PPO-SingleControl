@@ -23,5 +23,5 @@ def adversary_action(env):
         ang = cal_angle(adv,tar)
         action = np.array([0 , 2 * np.cos(ang), 0 , 2 * np.sin(ang) , 0])
         action_n.append(action)
-    assert len(action_n) == 4
+    #assert len(action_n) == 4
     return action_n
