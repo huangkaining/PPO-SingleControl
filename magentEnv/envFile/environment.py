@@ -104,7 +104,7 @@ class MultiAgentEnv(gym.Env):
         reward_n = []
         reward_agent = []
         done_n = []
-        info_n = {'n': []}
+        info_n = []
         self.agents = self.world.policy_agents
 
         # set action for each agent
@@ -115,11 +115,13 @@ class MultiAgentEnv(gym.Env):
 
         for agent in self.good_agents:
              reward_agent.append(self._get_reward(agent))
+             done_n.append(self._get_done(agent))
         reward_n.append(np.sum(reward_agent))
+        info_n = self._get_info()
 
-        randa = np.random.randint(20,size=1)
+        randa = np.random.randint(40,size=1)
         #print(randa)
-        if randa == 1 and self.num_adversary < 8:
+        if randa == 41 and self.num_adversary < 8:
             agent_tmp = Agent()
             agent_tmp.name = 'agent %d' % (self.num_adversary + self.num_good + 1)
             agent_tmp.collide = True
@@ -141,7 +143,7 @@ class MultiAgentEnv(gym.Env):
                     self.num_adversary += 1
                     self.adversary_agents.append(agent)
 
-        if randa == 2 and self.num_adversary > 2:
+        if randa == 42 and self.num_adversary > 2:
             self.world.agents = self.world.agents[0:-1]
             self.agents = self.world.agents
             self.adversary_agents = []
@@ -154,8 +156,7 @@ class MultiAgentEnv(gym.Env):
         # record observation for each agent
         for controller in self.controllers:
             obs_n.append(self._get_obs(controller))
-            done_n.append(self._get_done(controller))
-            info_n['n'].append(self._get_info(controller))
+
 
         '''for agent in self.agents:
             obs_n.append(self._get_obs(agent))
@@ -184,10 +185,10 @@ class MultiAgentEnv(gym.Env):
         return obs_n
 
     # get info used for benchmarking
-    def _get_info(self, agent):
+    def _get_info(self):
         if self.info_callback is None:
             return {}
-        return self.info_callback(agent, self.world)
+        return self.info_callback(self.world)
 
     # get observation for a particular agent
     def _get_obs(self, agent):
@@ -284,7 +285,7 @@ class MultiAgentEnv(gym.Env):
             if self.viewers[i] is None:
                 # import rendering only if we need it (and don't import for headless machines)
                 #from gym.envs.classic_control import rendering
-                from multiagent import rendering
+                from magentEnv.envFile import rendering
                 self.viewers[i] = rendering.Viewer(700,700)
 
         # create rendering geometry
@@ -331,6 +332,7 @@ class MultiAgentEnv(gym.Env):
             else:
                 pos = self.agents[i].state.p_pos
             self.viewers[i].set_bounds(pos[0]-cam_range,pos[0]+cam_range,pos[1]-cam_range,pos[1]+cam_range)
+            #self.viewers[i].set_bounds2(pos[0] - cam_range, pos[0] + cam_range, pos[1] - cam_range, pos[1] + cam_range)
             # update geometry positions
             for e, entity in enumerate(self.world.entities + self.world.base):
                 self.render_geoms_xform[e].set_translation(*entity.state.p_pos)

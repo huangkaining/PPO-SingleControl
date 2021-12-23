@@ -11,7 +11,7 @@ class Scenario(BaseScenario):
         #world.damping = 1
         num_controllers = 1
         num_good_agents = 4
-        num_adversaries = 4
+        num_adversaries = 8
         num_agents = num_adversaries + num_good_agents
         num_landmarks = 1
         num_food = 1
@@ -59,7 +59,7 @@ class Scenario(BaseScenario):
             landmark.name = 'base %d' %i
             landmark.collide = False
             landmark.movable = False
-            landmark.size = 0.2
+            landmark.size = 0.1
             landmark.boundary = False
         if num_forests:
             world.forests = [Landmark() for i in range(num_forests)]
@@ -376,5 +376,22 @@ class Scenario(BaseScenario):
                         return True
         return False
 
+    def get_score(self,world):
+        agents = self.good_agents(world)
+        adversaries = self.adversaries(world)
+        score_good = 0
+        score_adversary = 0
+        for ag in agents:
+            for food in world.food:
+                if self.is_collision(ag,food):
+                    score_good += 50
+            for ad in adversaries:
+                if self.is_collision(ag,ad):
+                    score_adversary += 10
+                    score_good += -10
+            for p in range(world.dim_p):
+                x = abs(ag.state.p_pos[p])
+                if x > 1 :
+                    score_good += -10
 
-                
+        return [score_good,score_adversary]

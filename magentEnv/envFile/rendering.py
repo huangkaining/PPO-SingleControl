@@ -77,6 +77,14 @@ class Viewer(object):
             translation=(-left*scalex, -bottom*scaley),
             scale=(scalex, scaley))
 
+    def set_bounds2(self, left, right, bottom, top):
+        assert right > left and top > bottom
+        scalex = self.width/(right-left)/2
+        scaley = self.height/(top-bottom)
+        self.transform = Transform(
+            translation=(-left*scalex, -bottom*scaley),
+            scale=(scalex, scaley))
+
     def add_geom(self, geom):
         self.geoms.append(geom)
 
