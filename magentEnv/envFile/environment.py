@@ -119,9 +119,10 @@ class MultiAgentEnv(gym.Env):
         reward_n.append(np.sum(reward_agent))
         info_n = self._get_info()
 
-        randa = np.random.randint(40,size=1)
+        randa = np.random.randint(30,size=1)
         #print(randa)
-        if randa == 41 and self.num_adversary < 8:
+        #if randa > 17 and self.num_adversary < 8:
+        if randa == 11 and self.num_adversary < 8:
             agent_tmp = Agent()
             agent_tmp.name = 'agent %d' % (self.num_adversary + self.num_good + 1)
             agent_tmp.collide = True
@@ -131,7 +132,7 @@ class MultiAgentEnv(gym.Env):
             agent_tmp.size = 0.075
             agent_tmp.accel = 3.0
             agent_tmp.max_speed = 1.0
-            agent_tmp.state.p_pos = np.random.uniform(-1.0, 1.0, self.world.dim_p)
+            agent_tmp.state.p_pos = np.random.uniform(-1.0, -0.6, self.world.dim_p)
             agent_tmp.state.p_vel = np.zeros(self.world.dim_p)
             agent_tmp.color = np.array([0.95, 0.45, 0.45])
             self.world.agents.append(agent_tmp)
@@ -143,7 +144,8 @@ class MultiAgentEnv(gym.Env):
                     self.num_adversary += 1
                     self.adversary_agents.append(agent)
 
-        if randa == 42 and self.num_adversary > 2:
+        #if randa < self.num_adversary - 2 and self.num_adversary > 2:
+        if randa == 13 and self.num_adversary > 2:
             self.world.agents = self.world.agents[0:-1]
             self.agents = self.world.agents
             self.adversary_agents = []

@@ -11,7 +11,7 @@ class Scenario(BaseScenario):
         #world.damping = 1
         num_controllers = 1
         num_good_agents = 4
-        num_adversaries = 8
+        num_adversaries = 4
         num_agents = num_adversaries + num_good_agents
         num_landmarks = 1
         num_food = 1
@@ -139,10 +139,12 @@ class Scenario(BaseScenario):
         for i, landmark in enumerate(world.landmarks):
             #landmark.state.p_pos = np.random.uniform(-0.9, +0.9, world.dim_p)
             landmark.state.p_pos = np.random.uniform(-0.4, +0.4, world.dim_p)
+            landmark.state.p_pos = np.array([0, 0])
             landmark.state.p_vel = np.zeros(world.dim_p)
         for i, landmark in enumerate(world.food):
             #landmark.state.p_pos = np.random.uniform(-0.9, +0.9, world.dim_p)
             landmark.state.p_pos = [np.random.uniform( -0.3, 0.8), np.random.uniform(-0.8,-0.5)]
+            landmark.state.p_pos = np.array([0.3, -0.5])
             landmark.state.p_vel = np.zeros(world.dim_p)
         for i, landmark in enumerate(world.forests):
             landmark.state.p_pos = np.random.uniform(-0.9, +0.9, world.dim_p)

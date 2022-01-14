@@ -161,8 +161,9 @@ def enjoy(arglist):
     """ init the agents """
     obs_shape_n = [env.observation_space[0].shape ]
     actors_tar = get_trainers(env, arglist)
-    th1 = curve_Thread()    #绘图线程
-    th1.start()
+
+    #th1 = curve_Thread()    #绘图线程
+    #th1.start()
 
     """ interact with the env """
     obs_n = env.reset()
@@ -170,7 +171,7 @@ def enjoy(arglist):
 
         # update the episode step number
         episode_step += 1
-        plt.ion()
+        #plt.ion()
         # get action
         action_n = []
         for actor, obs in zip(actors_tar, obs_n):
@@ -187,7 +188,7 @@ def enjoy(arglist):
         action_n = np.concatenate((action_good_clip, action_adversary_clip))
         # interact with env
         obs_n, rew_n, done_n, info_n = env.step(action_n)
-        th1.update_fig(info_n)
+        #th1.update_fig(info_n)
 
         # update the flag
         done = any(done_n)
@@ -198,8 +199,8 @@ def enjoy(arglist):
         if done or terminal: 
             episode_step = 0
             obs_n = env.reset()
-            plt.ioff()
-            th1.reset_fig()
+            #plt.ioff()
+            #th1.reset_fig()
 
         # render the env
         #print(rew_n)
