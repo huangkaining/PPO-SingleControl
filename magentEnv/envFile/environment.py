@@ -122,7 +122,7 @@ class MultiAgentEnv(gym.Env):
         randa = np.random.randint(30,size=1)
         #print(randa)
         #if randa > 17 and self.num_adversary < 8:
-        if randa == 11 and self.num_adversary < 8:
+        if randa == 41 and self.num_adversary < 8:
             agent_tmp = Agent()
             agent_tmp.name = 'agent %d' % (self.num_adversary + self.num_good + 1)
             agent_tmp.collide = True
@@ -145,7 +145,7 @@ class MultiAgentEnv(gym.Env):
                     self.adversary_agents.append(agent)
 
         #if randa < self.num_adversary - 2 and self.num_adversary > 2:
-        if randa == 13 and self.num_adversary > 2:
+        if randa == 43 and self.num_adversary > 2:
             self.world.agents = self.world.agents[0:-1]
             self.agents = self.world.agents
             self.adversary_agents = []

@@ -12,12 +12,13 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions import MultivariateNormal
+from torch.distributions import Normal
 import json
 
 from arguments import parse_args
 from replay_buffer import ReplayBuffer
 import magentEnv.envFile.scenarios as scenarios
-from model_PPO import FeedForwardNN
+from model_PPO import ActorNN,CriticNN
 from magentEnv.envFile.environment import MultiAgentEnv
 import adversary_control
 
@@ -41,8 +42,8 @@ def get_trainers(env, num_adversaries, obs_shape_n, action_shape_n, arglist):
     """
     init the trainers or load the old model
     """
-    actor = FeedForwardNN(obs_shape_n[0], action_shape_n[0])  # ALG STEP 1
-    critic = FeedForwardNN(obs_shape_n[0], 1)
+    actor = ActorNN(obs_shape_n[0], action_shape_n[0])  # ALG STEP 1
+    critic = CriticNN(obs_shape_n[0], 1)
 
     # Initialize optimizers for actor and critic
     actor_optim = optim.Adam(actor.parameters(), lr=arglist.lr_a)
@@ -51,8 +52,9 @@ def get_trainers(env, num_adversaries, obs_shape_n, action_shape_n, arglist):
     # Initialize the covariance matrix used to query the actor for actions
     cov_var = torch.full(size=(action_shape_n[0],), fill_value=2)
     cov_mat = torch.diag(cov_var)
+    std = torch.full(size=(action_shape_n[0],),fill_value=0.5)
 
-    return actor, critic, actor_optim, critic_optim, cov_var, cov_mat
+    return actor, critic, actor_optim, critic_optim, cov_var, cov_mat, std
 
 
 def compute_rtgs(arglist,batch_rews):
@@ -86,7 +88,7 @@ def compute_rtgs(arglist,batch_rews):
     return batch_rtgs
 
 
-def evaluate(batch_obs, batch_acts,critic,actor,cov_mat):
+def evaluate(batch_obs, batch_acts,critic,actor,cov_mat,std):
     """
         Estimate the values of each observation, and the log probs of
         each action in the most recent batch with the most recent
@@ -107,9 +109,12 @@ def evaluate(batch_obs, batch_acts,critic,actor,cov_mat):
 
     # Calculate the log probabilities of batch actions using most recent actor network.
     # This segment of code is similar to that in get_action()
-    mean = actor(batch_obs)
-    dist = MultivariateNormal(mean, cov_mat)
-    log_probs = dist.log_prob(batch_acts)
+    # mean = actor(batch_obs)
+    # dist = MultivariateNormal(mean, cov_mat)
+    # dist = Normal(mean, std)
+    mean, log_std = actor(batch_obs)
+    dist = Normal(mean,log_std.exp())
+    log_probs = dist.log_prob(batch_acts).sum(1)
 
     # Return the value vector V of each observation in the batch
     # and log probabilities log_probs of each action in the batch
@@ -139,7 +144,7 @@ def train(arglist):
     #action_shape_n = [env.action_space[i].n for i in range(env.n)]  # no need for stop bit
     #num_adversaries = min(env.n, arglist.num_adversaries)
     num_adversaries = 1
-    actor,critic,actor_optim,critic_optim,cov_var,cov_mat = \
+    actor,critic,actor_optim,critic_optim,cov_var,cov_mat,std = \
         get_trainers(env, num_adversaries, obs_shape_n, action_shape_n, arglist)
     
     print('=2 The {} agents are inited ...'.format(env.n))
@@ -149,6 +154,8 @@ def train(arglist):
     t_so_far = 0  # Timesteps simulated so far
     i_so_far = 0  # Iterations ran so far
     log_episode_reward = []
+    log_actorloss = []
+    log_criticloss = []
     while t_so_far < arglist.max_episode:  # ALG STEP 2
         """         
         batch_obs - the observations collected this batch. Shape: (number of timesteps, dimension of observation)
@@ -188,11 +195,16 @@ def train(arglist):
 
                 # Calculate action and make a step in the env.
                 # Note that rew is short for reward.
-                mean = actor(obs[0])
-                dist = MultivariateNormal(mean, cov_mat)
-                action_origin = dist.sample().detach()
-                log_prob = dist.log_prob(action_origin).detach()
-                action = action_origin.numpy()
+                # mean = actor(obs[0])
+                # dist = MultivariateNormal(mean, cov_mat)
+                # dist = Normal(mean, std)
+                # action_origin = dist.sample().detach()
+                # log_prob = dist.log_prob(action_origin).detach()
+                # action = torch.tanh(action_origin)
+                # log_prob -= torch.log(torch.tensor(1+1e-6) - action.pow(2))
+                action, log_prob = actor.sample(obs[0])
+                action = action.detach().numpy()
+                #log_prob = log_prob.sum()
                 action_good_clip = []  # 输入到环境的动作空间
                 action_good_clip_real = []  # 训练时候使用的动作空间
                 for i in range(env.num_good):
@@ -209,7 +221,7 @@ def train(arglist):
                 ep_rews.append(np.sum(rew))
                 batch_acts.append(action)
                 batch_log_probs.append(log_prob)
-
+                done = any(done)
                 # If the environment tells us the episode is terminated, break
                 terminal = (ep_t >= arglist.per_episode_max_len - 1)
                 if done or terminal:
@@ -231,22 +243,20 @@ def train(arglist):
         # Increment the number of iterations
         i_so_far += 1
 
-        #打印这一batch的reward
-        if(i_so_far % 10 == 0):
-            print("=Training=episode:{} average batch reward:{}".format(t_so_far,np.mean(log_episode_reward[-30:])), end="\n")
 
-        V, _ = evaluate(batch_obs, batch_acts,critic,actor,cov_mat)
+        V, _ = evaluate(batch_obs, batch_acts,critic,actor,cov_mat,std)
         A_k = batch_rtgs - V.detach()  # ALG STEP 5
 
         # One of the only tricks I use that isn't in the pseudocode. Normalizing advantages
         # isn't theoretically necessary, but in practice it decreases the variance of
         # our advantages and makes convergence much more stable and faster. I added this because
         # solving some environments was too unstable without it.
-        #A_k = (A_k - A_k.mean()) / (A_k.std() + 1e-10)
+        A_k = A_k - A_k.mean()
+
 
         for _ in range(5):  # ALG STEP 6 & 7
             # Calculate V_phi and pi_theta(a_t | s_t)
-            V, curr_log_probs = evaluate(batch_obs, batch_acts,critic,actor,cov_mat)
+            V, curr_log_probs = evaluate(batch_obs, batch_acts,critic,actor,cov_mat,std)
 
             # Calculate the ratio pi_theta(a_t | s_t) / pi_theta_k(a_t | s_t)
             # NOTE: we just subtract the logs, which is the same as
@@ -258,6 +268,7 @@ def train(arglist):
             ratios = torch.exp(curr_log_probs - batch_log_probs)
 
             # Calculate surrogate losses.
+            #surr1 = torch.mul(ratios * A_k)
             surr1 = ratios * A_k
             surr2 = torch.clamp(ratios, 1 - arglist.clip, 1 + arglist.clip) * A_k
 
@@ -278,9 +289,22 @@ def train(arglist):
             critic_loss.backward()
             critic_optim.step()
 
+            log_actorloss.append(actor_loss.detach().numpy())
+            log_criticloss.append(critic_loss.detach().numpy())
 
-        if(i_so_far % 200 == 0):
+        # 打印这一batch的reward
+        fre = 20
+        if (i_so_far % fre == 0):
+            print("=Training=episode:{} average batch reward:{}".format(t_so_far, np.mean(log_episode_reward[-10*fre:])),end="\n")
+            print("current actor loss=={}".format(np.mean(log_actorloss[-fre:])))
+            print("current critic loss=={}".format(np.mean(log_criticloss[-fre:])))
+            # for name, parms in actor.named_parameters():
+            #     print('-->name:', name, '-->grad_requirs:', parms.requires_grad,' -->grad_value:', parms.grad)
+
+
+        if(i_so_far % 50 == 0):
             model_file_dir_ep = os.path.join(model_file_dir,'{}'.format(i_so_far))
+            print(model_file_dir_ep," saved")
             if not os.path.exists(model_file_dir_ep): # make the path
                 os.mkdir(model_file_dir_ep)
             torch.save(actor.state_dict(), os.path.join(model_file_dir_ep, 'a_c_0.pt'))

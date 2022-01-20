@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import threading
 import model_PPO
+from torch.distributions import Normal
 
 
 from model import actor_agent, critic_agent
@@ -43,7 +44,7 @@ def get_trainers(env, arglist):
     """ load the model """
     obs_dim = env.observation_space[0].shape[0]
     act_dim = env.action_space[0].n
-    actors_tar = model_PPO.FeedForwardNN(obs_dim, act_dim)
+    actors_tar = model_PPO.ActorNN(obs_dim, act_dim)
     actors_tar.load_state_dict(torch.load(arglist.old_model_name+'a_c_0.pt'))
     actors_tar = [actors_tar]
 
@@ -74,9 +75,9 @@ def enjoy(arglist):
         # get action
         action_n = []
         for actor, obs in zip(actors_tar, obs_n):
-            model_out= actor(obs).detach()
+            model_out, _= actor(obs)
             #action_n.append(F.softmax(model_out,dim=-1).detach().cpu().numpy())
-            action_n.append(torch.clamp(model_out,-1.0 , 1.0))
+            action_n.append(torch.tanh(model_out))
 
         action_good_clip = []
         for i in range(env.num_good):
