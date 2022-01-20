@@ -229,7 +229,7 @@ def train(arglist):
 
             # Track episodic lengths and rewards
             batch_lens.append(ep_t + 1)
-            batch_rews.append(ep_rews)
+            batch_rews.append(ep_rews / (np.std(ep_rews) + 1e-10))
             log_episode_reward.append(ep_rews)
 
         # Reshape data as tensors in the shape specified in function description, before returning
@@ -251,6 +251,7 @@ def train(arglist):
         # isn't theoretically necessary, but in practice it decreases the variance of
         # our advantages and makes convergence much more stable and faster. I added this because
         # solving some environments was too unstable without it.
+        #A_k = (A_k - A_k.mean()) / (A_k.std() + torch.tensor(1e-10))
         A_k = A_k - A_k.mean()
 
 
