@@ -125,9 +125,9 @@ class Scenario(BaseScenario):
         for agent in world.agents:
             #agent.state.p_pos = np.random.uniform(-1, +1, world.dim_p)
             if agent.adversary:
-                agent.state.p_pos = np.random.uniform(-1, -0.8, world.dim_p)
+                agent.state.p_pos = np.random.uniform(-0.9, -0.8, world.dim_p)
             else:
-                agent.state.p_pos = np.random.uniform(0.6, 1, world.dim_p)
+                agent.state.p_pos = np.random.uniform(0.6, 0.9, world.dim_p)
             agent.state.p_vel = np.zeros(world.dim_p)
             #agent.state.polar_angle = np.random.randint(low = -180, high = 180)
             #agent.state.p_vel = np.array([agent.max_speed * np.cos(agent.state.polar_angle/57.29), agent.max_speed \
@@ -203,7 +203,7 @@ class Scenario(BaseScenario):
 
     def agent_reward(self, agent, world):
         # Agents are rewarded based on minimum agent distance to each landmark
-        rew = 10
+        rew = 0
         #每次飞行都扣除一个燃料的飞行时间惩罚
         shape = False
         adversaries = self.adversaries(world)
@@ -213,14 +213,14 @@ class Scenario(BaseScenario):
         if agent.collide:
             for a in adversaries:
                 if self.is_collision(a, agent):
-                    rew += 1
+                    rew -= 1
         def bound(x):
             if x < 0.9:
                 return 0
             if x < 1.0:
                 return (x - 0.9) * 10
             #return min(np.exp(2 * x - 2), 10)  # 1 + (x - 1) * (x - 1)
-            return min(np.exp(5 * x - 5), 10)
+            return min(np.exp(2 * x - 2), 10)
 
         for p in range(world.dim_p):
             x = abs(agent.state.p_pos[p])
@@ -229,7 +229,7 @@ class Scenario(BaseScenario):
         for food in world.food:
             if self.is_collision(agent, food):
                 rew += 400
-        rew -= 5 * min([np.sqrt(np.sum(np.square(food.state.p_pos - agent.state.p_pos))) for food in world.food])
+        rew += 1 - 0.5 * min([np.sqrt(np.sum(np.square(food.state.p_pos - agent.state.p_pos))) for food in world.food])
         #rew += 0.05 * min([np.sqrt(np.sum(np.square(food.state.p_pos - agent.state.p_pos))) for food in world.food])
 
         return rew
@@ -274,7 +274,7 @@ class Scenario(BaseScenario):
         for other in world.agents:
             other_pos.append(other.state.p_pos - agent.state.p_pos)
             other_vel.append(other.state.p_vel)
-        while len(other_pos) < 10:
+        while len(other_pos) < 8:
             other_pos.append(np.array([0,0]))
             other_vel.append(np.array([0,0]))
         '''print("\np_vel:" , agent.state.p_vel)

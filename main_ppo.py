@@ -143,7 +143,7 @@ def train(arglist):
     action_shape_n = [env.action_space[0].n ] # no need for stop bit
     #action_shape_n = [env.action_space[i].n for i in range(env.n)]  # no need for stop bit
     #num_adversaries = min(env.n, arglist.num_adversaries)
-    num_adversaries = 1
+    num_adversaries = 4
     actor,critic,actor_optim,critic_optim,cov_var,cov_mat,std = \
         get_trainers(env, num_adversaries, obs_shape_n, action_shape_n, arglist)
     

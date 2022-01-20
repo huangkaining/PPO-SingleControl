@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument("--start_save_model", type=int, default=400, help="the number of the episode for saving the model")
     parser.add_argument("--save_dir", type=str, default="./models-pytorch", \
             help="directory in which training state and model should be saved")
-    parser.add_argument("--old_model_name", type=str, default="models-pytorch/main_agent_control_22_0119_12/100/", \
+    parser.add_argument("--old_model_name", type=str, default="models-pytorch/main_agent_control_22_0120_12/100/", \
             help="directory in which training state and model are loaded")
 
     # evaluation
