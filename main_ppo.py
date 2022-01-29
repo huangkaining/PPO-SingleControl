@@ -178,7 +178,7 @@ def train(arglist):
         t = 0  # Keeps track of how many timesteps we've run so far this batch
 
         # Keep simulating until we've run more than or equal to specified timesteps per batch
-        while t < arglist.per_episode_max_len * 10:  # 每个batch的数量，取每轮的上限的2倍
+        while t < arglist.per_episode_max_len * 3:  # 每个batch的数量，取每轮的上限的2倍
             ep_rews = []  # rewards collected per episode
 
             # Reset the environment. sNote that obs is short for observation.

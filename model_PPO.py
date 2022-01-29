@@ -29,7 +29,7 @@ class ActorNN(nn.Module):
 		self.layer2 = nn.Linear(64, 64)
 		self.mean_layer = nn.Linear(64, out_dim)
 		self.std_layer = nn.Linear(64, out_dim)
-		self.scale = torch.tensor(1.)
+		self.scale = torch.tensor(1.5)
 		torch.nn.init.orthogonal_(self.layer1.weight)
 		torch.nn.init.orthogonal_(self.layer2.weight)
 		torch.nn.init.orthogonal_(self.mean_layer.weight)
