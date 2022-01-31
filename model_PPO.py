@@ -61,14 +61,14 @@ class ActorNN(nn.Module):
 	def sample(self,obs):
 		mean, log_std = self.forward(obs)
 		#std = log_std.exp()
-		std = torch.full(size=(8,),fill_value=0.5)
+		std = torch.full(size=(8,),fill_value=1)
 		normal = Normal(mean, std)
 		action_origin = normal.rsample()
 		action =  torch.tanh(action_origin)
 		log_prob = normal.log_prob(action_origin)
-		log_prob -= torch.log(self.scale*(torch.tensor(1) - action.pow(2)) + torch.tensor(1e-8))
+		log_prob -= torch.log(self.scale*(torch.tensor(1.) - action.pow(2)) + torch.tensor(1e-8))
 		log_prob = log_prob.sum()
-		return action, log_prob
+		return action * self.scale, log_prob
 
 
 

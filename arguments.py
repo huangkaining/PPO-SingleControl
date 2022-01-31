@@ -18,14 +18,14 @@ def parse_args():
     parser.add_argument("--per_episode_max_len", type=int, default=30, help="maximum episode length")
     parser.add_argument("--max_episode", type=int, default=15000000, help="maximum episode length")
     parser.add_argument("--num-adversaries", type=int, default=1, help="number of adversaries")
-    parser.add_argument("--exp_name",type=str,default="1")
+    parser.add_argument("--exp_name",type=str,default="5")
 
     # core training parameters
     parser.add_argument("--device", default=device, help="torch device ")
     parser.add_argument("--learning_start_step", type=int, default=20000, help="learning start steps")
     parser.add_argument("--max_grad_norm", type=float, default=0.5, help="max gradient norm for clip")
     parser.add_argument("--learning_fre", type=int, default=100, help="learning frequency")
-    parser.add_argument("--clip", type=float, default=0.2, help="PPO clip")
+    parser.add_argument("--clip", type=float, default=0.4, help="PPO clip")
     parser.add_argument("--tao", type=int, default=0.01, help="how depth we exchange the par of the nn")
     parser.add_argument("--lr_a", type=float, default=3e-3, help="learning rate for adam optimizer")
     parser.add_argument("--lr_c", type=float, default=3e-3, help="learning rate for adam optimizer")
@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument("--start_save_model", type=int, default=400, help="the number of the episode for saving the model")
     parser.add_argument("--save_dir", type=str, default="./models-pytorch", \
             help="directory in which training state and model should be saved")
-    parser.add_argument("--old_model_name", type=str, default="models-pytorch/main_agent_control_22_0128_1/7700/", \
+    parser.add_argument("--old_model_name", type=str, default="models-pytorch/main_agent_control_22_0131_5/900/", \
             help="directory in which training state and model are loaded")
 
     # evaluation

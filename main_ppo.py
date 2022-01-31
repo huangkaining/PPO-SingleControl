@@ -113,8 +113,11 @@ def evaluate(batch_obs, batch_acts,critic,actor,cov_mat,std):
     # dist = MultivariateNormal(mean, cov_mat)
     # dist = Normal(mean, std)
     mean, log_std = actor(batch_obs)
-    dist = Normal(mean,log_std.exp())
-    log_probs = dist.log_prob(batch_acts).sum(1)
+    std = torch.full(size=(8,),fill_value=1)
+    #dist = Normal(mean,log_std.exp())
+    dist = Normal(mean,std)
+    log_probs = dist.log_prob(batch_acts)
+    log_probs = log_probs.sum(1)
 
     # Return the value vector V of each observation in the batch
     # and log probabilities log_probs of each action in the batch
@@ -252,7 +255,7 @@ def train(arglist):
         # our advantages and makes convergence much more stable and faster. I added this because
         # solving some environments was too unstable without it.
         #A_k = (A_k - A_k.mean()) / (A_k.std() + torch.tensor(1e-10))
-        A_k = A_k - A_k.mean()
+        #A_k = A_k - A_k.mean()
 
 
         for _ in range(5):  # ALG STEP 6 & 7
@@ -296,7 +299,7 @@ def train(arglist):
         # 打印这一batch的reward
         fre = 20
         if (i_so_far % fre == 0):
-            print("=Training=episode:{} average batch reward:{}".format(t_so_far, np.mean(log_episode_reward[-10*fre:])),end="\n")
+            print("=Training=episode:{} average batch reward:{}".format(t_so_far, np.mean(log_episode_reward[-3*fre:])),end="\n")
             print("current actor loss=={}".format(np.mean(log_actorloss[-fre:])))
             print("current critic loss=={}".format(np.mean(log_criticloss[-fre:])))
             # for name, parms in actor.named_parameters():
@@ -305,7 +308,7 @@ def train(arglist):
 
         if(i_so_far % 50 == 0):
             model_file_dir_ep = os.path.join(model_file_dir,'{}'.format(i_so_far))
-            print(model_file_dir_ep," saved")
+            #print(model_file_dir_ep," saved")
             if not os.path.exists(model_file_dir_ep): # make the path
                 os.mkdir(model_file_dir_ep)
             torch.save(actor.state_dict(), os.path.join(model_file_dir_ep, 'a_c_0.pt'))

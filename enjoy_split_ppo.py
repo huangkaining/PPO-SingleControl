@@ -77,7 +77,7 @@ def enjoy(arglist):
         for actor, obs in zip(actors_tar, obs_n):
             model_out, _= actor(obs)
             #action_n.append(F.softmax(model_out,dim=-1).detach().cpu().numpy())
-            action_n.append(torch.tanh(model_out))
+            action_n.append(model_out)
 
         action_good_clip = []
         for i in range(env.num_good):

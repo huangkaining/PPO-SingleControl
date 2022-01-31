@@ -295,7 +295,7 @@ class MultiAgentEnv(gym.Env):
         if True:
             # import rendering only if we need it (and don't import for headless machines)
             #from gym.envs.classic_control import rendering
-            from multiagent import rendering
+            from magentEnv.envFile import rendering
             self.render_geoms = []
             self.render_geoms_xform = []
             for entity in (self.world.entities + self.world.base):
