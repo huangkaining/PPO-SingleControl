@@ -11,7 +11,7 @@ class Scenario(BaseScenario):
         #world.damping = 1
         num_controllers = 1
         num_good_agents = 4
-        num_adversaries = 4
+        num_adversaries = 1
         num_agents = num_adversaries + num_good_agents
         num_landmarks = 1
         num_food = 1
@@ -123,11 +123,11 @@ class Scenario(BaseScenario):
         world.base[1].color = np.array([0.75, 0.25, 0.25])  #adversary
         # set random initial states
         for agent in world.agents:
-            agent.state.p_pos = np.random.uniform(-1, +1, world.dim_p)
-            # if agent.adversary:
-            #     agent.state.p_pos = np.random.uniform(-0.9, -0.8, world.dim_p)
-            # else:
-            #     agent.state.p_pos = np.random.uniform(0.6, 0.9, world.dim_p)
+            #agent.state.p_pos = np.random.uniform(-1, +1, world.dim_p)
+            if agent.adversary:
+                agent.state.p_pos = np.random.uniform(-0.7, -0.3, world.dim_p)
+            else:
+                agent.state.p_pos = np.random.uniform(0.3, 0.7, world.dim_p)
             agent.state.p_vel = np.zeros(world.dim_p)
             #agent.state.polar_angle = np.random.randint(low = -180, high = 180)
             #agent.state.p_vel = np.array([agent.max_speed * np.cos(agent.state.polar_angle/57.29), agent.max_speed \
@@ -213,7 +213,7 @@ class Scenario(BaseScenario):
         if agent.collide:
             for a in adversaries:
                 if self.is_collision(a, agent):
-                    rew -= 0
+                    rew -= -1
         def bound(x):
             if x < 0.9:
                 return 0
@@ -230,7 +230,7 @@ class Scenario(BaseScenario):
         for food in world.food:
             if self.is_collision(agent, food):
                 rew += 400
-        rew += 5 - 0.5 * min([np.sqrt(np.sum(np.square(food.state.p_pos - agent.state.p_pos))) for food in world.food])
+        rew += 150 - 3 * np.sqrt(np.sum(np.square(world.food[0].state.p_pos - agent.state.p_pos)))
         #rew += 0.05 * min([np.sqrt(np.sum(np.square(food.state.p_pos - agent.state.p_pos))) for food in world.food])
 
         return rew

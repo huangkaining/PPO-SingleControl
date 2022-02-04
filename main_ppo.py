@@ -113,7 +113,7 @@ def evaluate(batch_obs, batch_acts,critic,actor,cov_mat,std):
     # dist = MultivariateNormal(mean, cov_mat)
     # dist = Normal(mean, std)
     mean, log_std = actor(batch_obs)
-    std = torch.full(size=(8,),fill_value=1)
+    std = torch.full(size=(8,),fill_value=2)
     #dist = Normal(mean,log_std.exp())
     dist = Normal(mean,std)
     log_probs = dist.log_prob(batch_acts)
@@ -230,9 +230,18 @@ def train(arglist):
                 if done or terminal:
                     obs = env.reset()
 
+                # env.render()
+                # time.sleep(0.01)
+
+            '''for i in range(4):
+                for ac in batch_acts:
+                    print("agent:{},action:{},{}".format(i,ac[i*2],ac[i*2+1]))'''
+
+
             # Track episodic lengths and rewards
             batch_lens.append(ep_t + 1)
-            batch_rews.append(ep_rews / (np.std(ep_rews) + 1e-10))
+            #batch_rews.append(ep_rews / (np.std(ep_rews) + 1e-10))
+            batch_rews.append(ep_rews)
             log_episode_reward.append(ep_rews)
 
         # Reshape data as tensors in the shape specified in function description, before returning
@@ -255,7 +264,7 @@ def train(arglist):
         # our advantages and makes convergence much more stable and faster. I added this because
         # solving some environments was too unstable without it.
         #A_k = (A_k - A_k.mean()) / (A_k.std() + torch.tensor(1e-10))
-        #A_k = A_k - A_k.mean()
+        A_k = A_k - A_k.mean()
 
 
         for _ in range(5):  # ALG STEP 6 & 7

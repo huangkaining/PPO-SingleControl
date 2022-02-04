@@ -29,7 +29,7 @@ class ActorNN(nn.Module):
 		self.layer2 = nn.Linear(64, 64)
 		self.mean_layer = nn.Linear(64, out_dim)
 		self.std_layer = nn.Linear(64, out_dim)
-		self.scale = torch.tensor(1.5)
+		self.scale = torch.tensor(0.9)
 		torch.nn.init.orthogonal_(self.layer1.weight)
 		torch.nn.init.orthogonal_(self.layer2.weight)
 		torch.nn.init.orthogonal_(self.mean_layer.weight)
@@ -61,7 +61,7 @@ class ActorNN(nn.Module):
 	def sample(self,obs):
 		mean, log_std = self.forward(obs)
 		#std = log_std.exp()
-		std = torch.full(size=(8,),fill_value=1)
+		std = torch.full(size=(8,),fill_value=2)
 		normal = Normal(mean, std)
 		action_origin = normal.rsample()
 		action =  torch.tanh(action_origin)
