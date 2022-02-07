@@ -125,7 +125,7 @@ class Scenario(BaseScenario):
         for agent in world.agents:
             #agent.state.p_pos = np.random.uniform(-1, +1, world.dim_p)
             if agent.adversary:
-                agent.state.p_pos = np.random.uniform(-0.7, -0.3, world.dim_p)
+                agent.state.p_pos = np.random.uniform(-0.9, -0.8, world.dim_p)
             else:
                 agent.state.p_pos = np.random.uniform(0.3, 0.7, world.dim_p)
             agent.state.p_vel = np.zeros(world.dim_p)
@@ -134,7 +134,7 @@ class Scenario(BaseScenario):
             #                                                       * np.sin(agent.state.polar_angle/57.29)])
             agent.state.c = np.zeros(world.dim_c)
         for i,controller in enumerate(world.controllers):
-            controller.state.p_pos = np.random.uniform(0.8, 0.9, world.dim_p)
+            controller.state.p_pos = np.random.uniform(0.5, 0.9, world.dim_p)
             controller.state.p_vel = np.zeros(world.dim_p)
         for i, landmark in enumerate(world.landmarks):
             #landmark.state.p_pos = np.random.uniform(-0.9, +0.9, world.dim_p)
@@ -229,8 +229,8 @@ class Scenario(BaseScenario):
 
         for food in world.food:
             if self.is_collision(agent, food):
-                rew += 400
-        rew += 150 - 3 * np.sqrt(np.sum(np.square(world.food[0].state.p_pos - agent.state.p_pos)))
+                rew += 200
+        rew += 10 - 5 * np.sqrt(np.sum(np.square(world.food[0].state.p_pos - agent.state.p_pos)))
         #rew += 0.05 * min([np.sqrt(np.sum(np.square(food.state.p_pos - agent.state.p_pos))) for food in world.food])
 
         return rew

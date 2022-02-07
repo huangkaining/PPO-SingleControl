@@ -52,7 +52,7 @@ def get_trainers(env, num_adversaries, obs_shape_n, action_shape_n, arglist):
     # Initialize the covariance matrix used to query the actor for actions
     cov_var = torch.full(size=(action_shape_n[0],), fill_value=2)
     cov_mat = torch.diag(cov_var)
-    std = torch.full(size=(action_shape_n[0],),fill_value=0.5)
+    std = torch.full(size=(action_shape_n[0],),fill_value=0.6)
 
     return actor, critic, actor_optim, critic_optim, cov_var, cov_mat, std
 
@@ -113,7 +113,7 @@ def evaluate(batch_obs, batch_acts,critic,actor,cov_mat,std):
     # dist = MultivariateNormal(mean, cov_mat)
     # dist = Normal(mean, std)
     mean, log_std = actor(batch_obs)
-    std = torch.full(size=(8,),fill_value=2)
+    #std = torch.full(size=(8,),fill_value=2)
     #dist = Normal(mean,log_std.exp())
     dist = Normal(mean,std)
     log_probs = dist.log_prob(batch_acts)
@@ -205,13 +205,13 @@ def train(arglist):
                 # log_prob = dist.log_prob(action_origin).detach()
                 # action = torch.tanh(action_origin)
                 # log_prob -= torch.log(torch.tensor(1+1e-6) - action.pow(2))
-                action, log_prob = actor.sample(obs[0])
+                action, log_prob = actor.sample(obs[0],std)
                 action = action.detach().numpy()
                 #log_prob = log_prob.sum()
                 action_good_clip = []  # 输入到环境的动作空间
                 action_good_clip_real = []  # 训练时候使用的动作空间
                 for i in range(env.num_good):
-                    a = [0, action[i * 2], 0, action[i * 2 + 1], 0]
+                    a = [0, 0 , action[i * 2], 0, action[i * 2 + 1]]
                     #b = [action[i * 2], action[i * 2 + 1]]
                     action_good_clip.append(a)
                     #action_good_clip_real.append(b)
@@ -230,8 +230,8 @@ def train(arglist):
                 if done or terminal:
                     obs = env.reset()
 
-                # env.render()
-                # time.sleep(0.01)
+                #env.render()
+                #time.sleep(0.01)
 
             '''for i in range(4):
                 for ac in batch_acts:
@@ -249,6 +249,7 @@ def train(arglist):
         batch_acts = torch.tensor(batch_acts, dtype=torch.float)
         batch_log_probs = torch.tensor(batch_log_probs, dtype=torch.float)
         batch_rtgs = compute_rtgs(arglist,batch_rews)  # ALG STEP 4
+        batch_rtgs = (batch_rtgs - batch_rtgs.mean()) / (batch_rtgs.std() + 1e-7)
 
         t_so_far += np.sum(batch_lens)
 
@@ -264,7 +265,7 @@ def train(arglist):
         # our advantages and makes convergence much more stable and faster. I added this because
         # solving some environments was too unstable without it.
         #A_k = (A_k - A_k.mean()) / (A_k.std() + torch.tensor(1e-10))
-        A_k = A_k - A_k.mean()
+        #A_k = A_k - A_k.mean()
 
 
         for _ in range(5):  # ALG STEP 6 & 7
@@ -304,6 +305,11 @@ def train(arglist):
 
             log_actorloss.append(actor_loss.detach().numpy())
             log_criticloss.append(critic_loss.detach().numpy())
+
+        std_min = torch.full(size=(action_shape_n[0],),fill_value=0.1)
+        if(i_so_far % 200 == 0):
+            std = torch.max(std - 0.05, std_min)
+            print(std)
 
         # 打印这一batch的reward
         fre = 20
