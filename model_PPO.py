@@ -28,7 +28,7 @@ class ActorNN(nn.Module):
 		self.layer1 = nn.Linear(in_dim, 64)
 		self.layer2 = nn.Linear(64, 64)
 		self.mean_layer = nn.Linear(64, out_dim)
-		self.std_layer = nn.Linear(64, out_dim)
+		#self.std_layer = nn.Linear(64, out_dim)
 		self.scale = torch.tensor(1.2)
 		# torch.nn.init.orthogonal_(self.layer1.weight)
 		# torch.nn.init.orthogonal_(self.layer2.weight)
@@ -55,11 +55,13 @@ class ActorNN(nn.Module):
 		activation1 = F.relu(self.layer1(obs))
 		activation2 = F.relu(self.layer2(activation1))
 		mean = self.mean_layer(activation2)
-		log_std = self.std_layer(activation2)
-		return mean,log_std
+		#log_std = self.std_layer(activation2)
+		#return mean,log_std
+		return mean
 
 	def sample(self,obs,std):
-		mean, log_std= self.forward(obs)
+		#mean, log_std= self.forward(obs)
+		mean = self.forward(obs)
 		#std = log_std.exp()
 		#std = torch.full(size=(8,),fill_value=2)
 		normal = Normal(mean, std)

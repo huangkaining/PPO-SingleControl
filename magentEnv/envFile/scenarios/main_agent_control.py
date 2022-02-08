@@ -10,7 +10,7 @@ class Scenario(BaseScenario):
         world.dim_c = 4
         #world.damping = 1
         num_controllers = 1
-        num_good_agents = 4
+        num_good_agents = 2
         num_adversaries = 1
         num_agents = num_adversaries + num_good_agents
         num_landmarks = 1
@@ -124,7 +124,7 @@ class Scenario(BaseScenario):
         # set random initial states
         for agent in world.agents:
             #agent.state.p_pos = np.random.uniform(-1, +1, world.dim_p)
-            if agent.adversary:
+            if not agent.adversary:
                 agent.state.p_pos = np.random.uniform(-0.9, -0.8, world.dim_p)
             else:
                 agent.state.p_pos = np.random.uniform(0.3, 0.7, world.dim_p)
@@ -275,7 +275,7 @@ class Scenario(BaseScenario):
         for other in world.agents:
             other_pos.append(other.state.p_pos - agent.state.p_pos)
             other_vel.append(other.state.p_vel)
-        while len(other_pos) < 10:
+        while len(other_pos) < 4:
             other_pos.append(np.array([0,0]))
             other_vel.append(np.array([0,0]))
         '''print("\np_vel:" , agent.state.p_vel)

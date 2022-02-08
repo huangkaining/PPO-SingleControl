@@ -109,10 +109,10 @@ def evaluate(batch_obs, batch_acts,critic,actor,cov_mat,std):
 
     # Calculate the log probabilities of batch actions using most recent actor network.
     # This segment of code is similar to that in get_action()
-    # mean = actor(batch_obs)
+    mean = actor(batch_obs)
     # dist = MultivariateNormal(mean, cov_mat)
     # dist = Normal(mean, std)
-    mean, log_std = actor(batch_obs)
+    #mean, log_std = actor(batch_obs)
     #std = torch.full(size=(8,),fill_value=2)
     #dist = Normal(mean,log_std.exp())
     dist = Normal(mean,std)
@@ -230,8 +230,8 @@ def train(arglist):
                 if done or terminal:
                     obs = env.reset()
 
-                #env.render()
-                #time.sleep(0.01)
+                env.render()
+                time.sleep(0.01)
 
             '''for i in range(4):
                 for ac in batch_acts:
@@ -315,8 +315,8 @@ def train(arglist):
         fre = 20
         if (i_so_far % fre == 0):
             print("=Training=episode:{} average batch reward:{}".format(t_so_far, np.mean(log_episode_reward[-3*fre:])),end="\n")
-            print("current actor loss=={}".format(np.mean(log_actorloss[-fre:])))
-            print("current critic loss=={}".format(np.mean(log_criticloss[-fre:])))
+            #print("current actor loss=={}".format(np.mean(log_actorloss[-fre:])))
+            #print("current critic loss=={}".format(np.mean(log_criticloss[-fre:])))
             # for name, parms in actor.named_parameters():
             #     print('-->name:', name, '-->grad_requirs:', parms.requires_grad,' -->grad_value:', parms.grad)
 
