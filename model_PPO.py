@@ -30,10 +30,10 @@ class ActorNN(nn.Module):
 		self.mean_layer = nn.Linear(64, out_dim)
 		#self.std_layer = nn.Linear(64, out_dim)
 		self.scale = torch.tensor(1.2)
-		# torch.nn.init.orthogonal_(self.layer1.weight)
-		# torch.nn.init.orthogonal_(self.layer2.weight)
-		# torch.nn.init.orthogonal_(self.mean_layer.weight)
-		# torch.nn.init.orthogonal_(self.std_layer.weight)
+		torch.nn.init.orthogonal_(self.layer1.weight)
+		torch.nn.init.orthogonal_(self.layer2.weight)
+		torch.nn.init.orthogonal_(self.mean_layer.weight)
+		#torch.nn.init.orthogonal_(self.std_layer.weight)
 
 
 
@@ -52,8 +52,8 @@ class ActorNN(nn.Module):
 		if isinstance(obs, np.ndarray):
 			obs = torch.tensor(obs, dtype=torch.float)
 
-		activation1 = F.relu(self.layer1(obs))
-		activation2 = F.relu(self.layer2(activation1))
+		activation1 = F.tanh(self.layer1(obs))
+		activation2 = F.tanh(self.layer2(activation1))
 		mean = self.mean_layer(activation2)
 		#log_std = self.std_layer(activation2)
 		#return mean,log_std
@@ -110,8 +110,8 @@ class CriticNN(nn.Module):
 		if isinstance(obs, np.ndarray):
 			obs = torch.tensor(obs, dtype=torch.float)
 
-		activation1 = F.relu(self.layer1(obs))
-		activation2 = F.relu(self.layer2(activation1))
+		activation1 = F.tanh(self.layer1(obs))
+		activation2 = F.tanh(self.layer2(activation1))
 		output = self.layer3(activation2)
 
 		return output

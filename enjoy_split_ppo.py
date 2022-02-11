@@ -75,13 +75,13 @@ def enjoy(arglist):
         # get action
         action_n = []
         for actor, obs in zip(actors_tar, obs_n):
-            model_out, _= actor(obs)
+            model_out= actor(obs)
             #action_n.append(F.softmax(model_out,dim=-1).detach().cpu().numpy())
             action_n.append(model_out)
 
         action_good_clip = []
         for i in range(env.num_good):
-            a = [0 , action_n[0][i* 2], 0 , action_n[0][i * 2 +1], 0]
+            a = [0 , 0, action_n[0][i* 2], 0 , action_n[0][i * 2 +1]]
             action_good_clip.append(a)
         #print(action_good_clip)
         action_adversary_clip = adversary_control.adversary_action(env)
