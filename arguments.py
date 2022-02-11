@@ -18,7 +18,7 @@ def parse_args():
     parser.add_argument("--per_episode_max_len", type=int, default=30, help="maximum episode length")
     parser.add_argument("--max_episode", type=int, default=1500000, help="maximum episode length")
     parser.add_argument("--num-adversaries", type=int, default=1, help="number of adversaries")
-    parser.add_argument("--exp_name",type=str,default="1")
+    parser.add_argument("--exp_name",type=str,default="3")
 
     # core training parameters
     parser.add_argument("--device", default=device, help="torch device ")

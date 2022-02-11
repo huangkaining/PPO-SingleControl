@@ -194,6 +194,7 @@ def train(arglist):
                 t += 1  # Increment timesteps ran this batch so far
 
                 # Track observations in this batch
+                obs[0] = (obs[0] - obs[0].mean()) / obs[0].std()
                 batch_obs.append(obs[0])
 
                 # Calculate action and make a step in the env.
