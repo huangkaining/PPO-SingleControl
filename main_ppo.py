@@ -179,14 +179,16 @@ def train(arglist):
         ep_rews = []
 
         t = 0  # Keeps track of how many timesteps we've run so far this batch
-
+        i_flag = 0
         # Keep simulating until we've run more than or equal to specified timesteps per batch
-        while t < arglist.per_episode_max_len * 5:  # 每个batch的数量，取每轮的上限的2倍
+        while t < arglist.per_episode_max_len * 20:  # 每个batch的数量，取每轮的上限的2倍
             ep_rews = []  # rewards collected per episode
 
             # Reset the environment. sNote that obs is short for observation.
             obs = env.reset()
             done = False
+            i_flag = i_flag + 1
+            i_flag = i_flag % 5
 
             # Run an episode for a maximum of max_timesteps_per_episode timesteps
             for ep_t in range(arglist.per_episode_max_len):
@@ -231,8 +233,9 @@ def train(arglist):
                 if done or terminal:
                     obs = env.reset()
 
-                env.render()
-                time.sleep(0.01)
+                if i_flag % 4 == 0:
+                    env.render()
+                    time.sleep(0.01)
 
             '''for i in range(4):
                 for ac in batch_acts:
